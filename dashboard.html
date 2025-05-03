@@ -427,7 +427,7 @@
 
     async function loadStats() {
       try {
-        const snapshot = await db.collection("users").get();
+        const snapshot = await db.collection("Users").get();
         const today = new Date();
         let activeToday = 0;
         const dailyUsers = {};
