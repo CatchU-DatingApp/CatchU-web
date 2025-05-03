@@ -1,38 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>CatchU Dashboard</title>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <meta http-equiv="refresh" content="0; url=dashboard.html" />
+  <title>Redirecting...</title>
 </head>
 <body>
-  <h1>CatchU Dashboard</h1>
-  <div id="output"></div>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCpIAp_3toinNiwbQ7xeDKF8ieToEGVYsI",
-      authDomain: "catchu-datingapp.firebaseapp.com",
-      projectId: "catchu-datingapp",
-      storageBucket: "catchu-datingapp.firebasestorage.app",
-      messagingSenderId: "367797428924",
-      appId: "1:367797428924:web:8b894d02f9c7aa085b66b9",
-      measurementId: "G-NTW6FLXEXG"
-    };
-
-    // Inisialisasi Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // Tes ambil data dari Firestore
-    db.collection("Users").get().then((querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        document.getElementById("output").innerHTML += `<p>${doc.id}: ${JSON.stringify(data)}</p>`;
-      });
-    }).catch(err => {
-      console.error("Error reading data:", err);
-    });
-  </script>
+  <p>Redirecting to Dashboard...</p>
 </body>
 </html>

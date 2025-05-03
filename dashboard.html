@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - CatchU</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #7755cc;
+      --secondary: #e84786;
+      --accent: #42c2ff;
+      --dark: #333;
+      --light: #f9f9f9;
+      --success: #28a745;
+      --warning: #ffc107;
+      --gray: #6c757d;
+      --shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--dark);
+      background-color: #f0f2f5;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    
+    /* Layout */
+    .container {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: 100vh;
+      max-width: 100%;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      background: linear-gradient(135deg, var(--primary), #5540a8);
+      color: white;
+      padding: 20px;
+      position: fixed;
+      width: 240px;
+      height: 100%;
+      box-shadow: var(--shadow);
+      z-index: 100;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      padding: 15px 0;
+      margin-bottom: 30px;
+      font-size: 22px;
+      font-weight: 600;
+    }
+    
+    .logo i {
+      background: white;
+      color: var(--primary);
+      padding: 8px;
+      border-radius: 8px;
+      margin-right: 12px;
+    }
+    
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      margin: 8px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .nav-item:hover, .nav-item.active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .nav-item i {
+      margin-right: 12px;
+    }
+    
+    /* Main content */
+    .main-content {
+      grid-column: 2;
+      padding: 30px;
+      width: 100%;
+      max-width: calc(100vw - 240px);
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    
+    .title {
+      font-size: 24px;
+      font-weight: 600;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+    }
+    
+    .user-info .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #ddd;
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary);
+      color: white;
+    }
+    
+    /* Stats section */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      transition: transform 0.3s;
+      display: flex;
+      align-items: center;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: rgba(119, 85, 204, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 20px;
+      flex-shrink: 0;
+    }
+    
+    .stat-icon i {
+      font-size: 24px;
+      color: var(--primary);
+    }
+    
+    .stat-content h3 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    
+    .stat-content p {
+      color: var(--gray);
+      font-size: 14px;
+    }
+    
+    /* Charts section */
+    .charts-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .chart-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      height: 400px;
+      position: relative;
+    }
+    
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .chart-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .chart-action {
+      color: var(--primary);
+      font-size: 14px;
+      cursor: pointer;
+    }
+    
+    canvas {
+      max-height: 320px !important;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .charts-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+      
+      .sidebar {
+        display: none;
+      }
+      
+      .main-content {
+        grid-column: 1;
+        max-width: 100vw;
+        padding: 20px;
+      }
+      
+      .stats-container {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      }
+      
+      .charts-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .user-info {
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo">
+        <i class="fas fa-heart"></i>
+        <span>CatchU Admin</span>
+      </div>
+      <div class="nav-item active">
+        <i class="fas fa-chart-pie"></i>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-users"></i>
+        <span>Users</span>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-comments"></i>
+        <span>Chats</span>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-bell"></i>
+        <span>Notifications</span>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-cog"></i>
+        <span>Settings</span>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="header">
+        <h1 class="title">Dashboard Overview</h1>
+        <div class="user-info">
+          <div class="avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <span>Admin</span>
+        </div>
+      </div>
+      
+      <!-- Stats Cards -->
+      <div class="stats-container">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-content">
+            <h3 id="total-users">0</h3>
+            <p>Total Users</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(40, 167, 69, 0.1);">
+            <i class="fas fa-user-check" style="color: var(--success);"></i>
+          </div>
+          <div class="stat-content">
+            <h3 id="active-today">0</h3>
+            <p>Active Today</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(232, 71, 134, 0.1);">
+            <i class="fas fa-venus-mars" style="color: var(--secondary);"></i>
+          </div>
+          <div class="stat-content">
+            <h3 id="gender-ratio">0%</h3>
+            <p>Male/Female Ratio</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(66, 194, 255, 0.1);">
+            <i class="fas fa-chart-line" style="color: var(--accent);"></i>
+          </div>
+          <div class="stat-content">
+            <h3 id="avg-age">0</h3>
+            <p>Average Age</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Charts -->
+      <div class="charts-container">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h2 class="chart-title">User Growth</h2>
+            <span class="chart-action">Last 30 days</span>
+          </div>
+          <canvas id="dailyUsersChart"></canvas>
+        </div>
+        
+        <div class="chart-card">
+          <div class="chart-header">
+            <h2 class="chart-title">Age Distribution</h2>
+            <span class="chart-action">View details</span>
+          </div>
+          <canvas id="ageDistributionChart"></canvas>
+        </div>
+      </div>
+      
+      <div class="charts-container">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h2 class="chart-title">Gender Distribution</h2>
+            <span class="chart-action">View details</span>
+          </div>
+          <canvas id="genderChart"></canvas>
+        </div>
+        
+        <div class="chart-card">
+          <div class="chart-header">
+            <h2 class="chart-title">Top Interests</h2>
+            <span class="chart-action">View all</span>
+          </div>
+          <canvas id="interestChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCpIAp_3toinNiwbQ7xeDKF8ieToEGVYsI",
+      authDomain: "catchu-datingapp.firebaseapp.com",
+      projectId: "catchu-datingapp",
+      storageBucket: "catchu-datingapp.firebasestorage.app",
+      messagingSenderId: "367797428924",
+      appId: "1:367797428924:web:8b894d02f9c7aa085b66b9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Chart colors
+    const chartColors = {
+      purple: 'rgba(119, 85, 204, 1)',
+      lightPurple: 'rgba(119, 85, 204, 0.2)',
+      pink: 'rgba(232, 71, 134, 1)',
+      lightPink: 'rgba(232, 71, 134, 0.2)',
+      blue: 'rgba(66, 194, 255, 1)',
+      lightBlue: 'rgba(66, 194, 255, 0.2)',
+      green: 'rgba(40, 167, 69, 1)',
+      lightGreen: 'rgba(40, 167, 69, 0.2)',
+      yellow: 'rgba(255, 193, 7, 1)',
+      lightYellow: 'rgba(255, 193, 7, 0.2)',
+      colorArray: [
+        'rgba(119, 85, 204, 0.8)',
+        'rgba(232, 71, 134, 0.8)',
+        'rgba(66, 194, 255, 0.8)',
+        'rgba(40, 167, 69, 0.8)',
+        'rgba(255, 193, 7, 0.8)',
+        'rgba(108, 117, 125, 0.8)',
+        'rgba(220, 53, 69, 0.8)',
+        'rgba(23, 162, 184, 0.8)',
+        'rgba(255, 127, 80, 0.8)',
+        'rgba(128, 0, 128, 0.8)'
+      ]
+    };
+
+    async function loadStats() {
+      try {
+        const snapshot = await db.collection("users").get();
+        const today = new Date();
+        let activeToday = 0;
+        const dailyUsers = {};
+        const ages = [];
+        const genders = {};
+        const interests = {};
+        
+        // Initialize last 30 days data
+        for (let i = 29; i >= 0; i--) {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          const dateStr = date.toISOString().split('T')[0];
+          dailyUsers[dateStr] = 0;
+        }
+
+        snapshot.forEach(doc => {
+          const user = doc.data();
+
+          // Ages
+          if (user.umur && !isNaN(user.umur)) {
+            ages.push(user.umur);
+          }
+
+          // Gender
+          if (user.gender) {
+            genders[user.gender] = (genders[user.gender] || 0) + 1;
+          }
+
+          // Interests
+          if (Array.isArray(user.interest)) {
+            user.interest.forEach(i => {
+              interests[i] = (interests[i] || 0) + 1;
+            });
+          }
+
+          // Active today
+          const login = user.lastLogin?.seconds ? new Date(user.lastLogin.seconds * 1000) : null;
+          if (login && login.toDateString() === today.toDateString()) {
+            activeToday++;
+          }
+
+          // Daily users
+          const creationDate = user.createdAt?.seconds ? 
+            new Date(user.createdAt.seconds * 1000) : 
+            (login || new Date());
+          const dateStr = creationDate.toISOString().split('T')[0];
+          
+          // Only count if within our 30 day window
+          if (dailyUsers.hasOwnProperty(dateStr)) {
+            dailyUsers[dateStr] = (dailyUsers[dateStr] || 0) + 1;
+          }
+        });
+
+        // Calculate average age
+        const avgAge = ages.length ? Math.round(ages.reduce((sum, age) => sum + age, 0) / ages.length) : 0;
+        
+        // Calculate gender ratio
+        let maleCount = genders['Male'] || 0;
+        let femaleCount = genders['Female'] || 0;
+        let totalGenderCount = maleCount + femaleCount;
+        let ratioText = totalGenderCount ? `${Math.round((maleCount / totalGenderCount) * 100)}/${Math.round((femaleCount / totalGenderCount) * 100)}` : "0/0";
+
+        // Show stats
+        document.getElementById("total-users").textContent = snapshot.size;
+        document.getElementById("active-today").textContent = activeToday;
+        document.getElementById("avg-age").textContent = avgAge;
+        document.getElementById("gender-ratio").textContent = ratioText;
+
+        drawCharts(dailyUsers, ages, genders, interests);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        // Show fallback UI or error message
+      }
+    }
+
+    function drawCharts(dailyUsers, ages, genders, interests) {
+      // Set Chart.js defaults
+      Chart.defaults.font.family = "'Segoe UI', sans-serif";
+      Chart.defaults.color = '#6c757d';
+      
+      // 1. Daily Users Chart
+      const ctx1 = document.getElementById('dailyUsersChart').getContext('2d');
+      new Chart(ctx1, {
+        type: 'line',
+        data: {
+          labels: Object.keys(dailyUsers),
+          datasets: [{
+            label: 'New Users',
+            data: Object.values(dailyUsers),
+            borderColor: chartColors.purple,
+            backgroundColor: chartColors.lightPurple,
+            tension: 0.3,
+            fill: true,
+            pointBackgroundColor: chartColors.purple,
+            pointRadius: 3,
+            pointHoverRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              padding: 10,
+              cornerRadius: 4
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                maxTicksLimit: 7
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                borderDash: [5, 5]
+              },
+              ticks: {
+                precision: 0
+              }
+            }
+          }
+        }
+      });
+
+      // 2. Age Distribution Chart
+      const ctx2 = document.getElementById('ageDistributionChart').getContext('2d');
+      new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: ['<18', '18-24', '25-34', '35-44', '45+'],
+          datasets: [{
+            label: 'Users',
+            data: [
+              ages.filter(a => a < 18).length,
+              ages.filter(a => a >= 18 && a <= 24).length,
+              ages.filter(a => a >= 25 && a <= 34).length,
+              ages.filter(a => a >= 35 && a <= 44).length,
+              ages.filter(a => a >= 45).length
+            ],
+            backgroundColor: chartColors.pink,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                borderDash: [5, 5]
+              },
+              ticks: {
+                precision: 0
+              }
+            }
+          }
+        }
+      });
+
+      // 3. Gender Chart
+      const ctx3 = document.getElementById('genderChart').getContext('2d');
+      new Chart(ctx3, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(genders),
+          datasets: [{
+            data: Object.values(genders),
+            backgroundColor: [
+              chartColors.blue,
+              chartColors.pink,
+              chartColors.yellow
+            ],
+            borderWidth: 0,
+            hoverOffset: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 20,
+                usePointStyle: true,
+                pointStyle: 'circle'
+              }
+            }
+          }
+        }
+      });
+
+      // 4. Interests Chart (Horizontal Bar)
+      // Sort interests and take top 8
+      const sortedInterests = Object.entries(interests)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8);
+      
+      const interestLabels = sortedInterests.map(item => item[0]);
+      const interestData = sortedInterests.map(item => item[1]);
+      
+      const ctx4 = document.getElementById('interestChart').getContext('2d');
+      new Chart(ctx4, {
+        type: 'bar',
+        data: {
+          labels: interestLabels,
+          datasets: [{
+            axis: 'y',
+            label: 'Users',
+            data: interestData,
+            backgroundColor: chartColors.colorArray,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              grid: {
+                borderDash: [5, 5]
+              },
+              ticks: {
+                precision: 0
+              }
+            },
+            y: {
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Initialize
+    loadStats();
+
+    // Update stats every 5 minutes
+    setInterval(loadStats, 300000);
+  </script>
+</body>
+</html>
