@@ -295,4 +295,47 @@ function drawCharts(dailyUsers, ages, genders, interests) {
 loadStats();
 
 // Update stats every 5 minutes
-setInterval(loadStats, 300000); 
+setInterval(loadStats, 300000);
+
+// Sidebar Users click event
+window.addEventListener('DOMContentLoaded', function() {
+  const sidebarItems = document.querySelectorAll('.sidebar .nav-item');
+  const usersSidebar = Array.from(sidebarItems).find(item => item.textContent.trim().includes('Users'));
+  const mainContent = document.querySelector('.main-content');
+  const userListContainer = document.getElementById('user-list-container');
+
+  if (usersSidebar) {
+    usersSidebar.addEventListener('click', async function() {
+      // Highlight sidebar
+      sidebarItems.forEach(item => item.classList.remove('active'));
+      usersSidebar.classList.add('active');
+      // Hide dashboard content, show user list
+      mainContent.querySelectorAll(':scope > *:not(#user-list-container)').forEach(el => el.style.display = 'none');
+      userListContainer.style.display = 'block';
+      userListContainer.innerHTML = '<h2 style="margin-bottom:16px;">Daftar User</h2><div id="user-list-loading">Loading...</div>';
+      try {
+        const snapshot = await db.collection('Users').get();
+        let html = '<ul style="list-style:none;padding:0;">';
+        snapshot.forEach(doc => {
+          const user = doc.data();
+          html += `<li style='padding:8px 0;border-bottom:1px solid #eee;'>${user.nama || user.name || '(Tanpa Nama)'}</li>`;
+        });
+        html += '</ul>';
+        userListContainer.innerHTML = '<h2 style="margin-bottom:16px;">Daftar User</h2>' + html;
+      } catch (e) {
+        userListContainer.innerHTML = '<span style="color:red">Gagal memuat data user.</span>';
+      }
+    });
+  }
+
+  // Sidebar Dashboard click: tampilkan dashboard, sembunyikan user list
+  const dashboardSidebar = Array.from(sidebarItems).find(item => item.textContent.trim().includes('Dashboard'));
+  if (dashboardSidebar) {
+    dashboardSidebar.addEventListener('click', function() {
+      sidebarItems.forEach(item => item.classList.remove('active'));
+      dashboardSidebar.classList.add('active');
+      mainContent.querySelectorAll(':scope > *:not(#user-list-container)').forEach(el => el.style.display = '');
+      userListContainer.style.display = 'none';
+    });
+  }
+}); 

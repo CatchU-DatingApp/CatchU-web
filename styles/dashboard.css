@@ -34,7 +34,7 @@ body {
 
 /* Sidebar */
 .sidebar {
-  background: linear-gradient(135deg, var(--primary), #5540a8);
+  background: #FF375F;
   color: white;
   padding: 20px;
   position: fixed;
@@ -55,7 +55,7 @@ body {
 
 .logo i {
   background: white;
-  color: var(--primary);
+  color: #FF375F;
   padding: 8px;
   border-radius: 8px;
   margin-right: 12px;
@@ -113,7 +113,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--primary);
+  background: #FF375F;
   color: white;
 }
 
