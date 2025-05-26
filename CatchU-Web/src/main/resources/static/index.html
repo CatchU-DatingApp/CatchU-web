@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CatchU</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="styles/dashboard.css" rel="stylesheet">
+    <link href="styles/user-list.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-heart"></i>
+            <span>CatchU Admin</span>
+        </div>
+        <div class="nav-item active">
+            <i class="fas fa-chart-pie"></i>
+            <span>Dashboard</span>
+        </div>
+        <div class="nav-item">
+            <a href="user-list.html" style="color:inherit;text-decoration:none;display:flex;align-items:center;width:100%"><i class="fas fa-users"></i><span>Users</span></a>
+        </div>
+        <div class="nav-item"><i class="fas fa-comments"></i><span>Chats</span></div>
+        <div class="nav-item"><i class="fas fa-bell"></i><span>Notifications</span></div>
+        <div class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></div>
+        <div class="nav-item"><i class="fas fa-sign-out-alt"></i><span>Logout</span></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h1 class="title">Dashboard Overview</h1>
+            <div class="user-info">
+                <div class="avatar"><i class="fas fa-user"></i></div>
+                <span>Admin</span>
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-content"><h3 id="total-users">0</h3><p>Total Users</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(40, 167, 69, 0.1);">
+                    <i class="fas fa-user-check" style="color: var(--success);"></i>
+                </div>
+                <div class="stat-content"><h3 id="active-today">0</h3><p>Active Today</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(232, 71, 134, 0.1);">
+                    <i class="fas fa-venus-mars" style="color: var(--secondary);"></i>
+                </div>
+                <div class="stat-content"><h3 id="gender-ratio">0%</h3><p>Male/Female Ratio</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(66, 194, 255, 0.1);">
+                    <i class="fas fa-chart-line" style="color: var(--accent);"></i>
+                </div>
+                <div class="stat-content"><h3 id="avg-age">0</h3><p>Average Age</p></div>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-card">
+                <div class="chart-header"><h2 class="chart-title">User Growth</h2><span class="chart-action">Last 30 days</span></div>
+                <canvas id="dailyUsersChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header"><h2 class="chart-title">Age Distribution</h2><span class="chart-action">View details</span></div>
+                <canvas id="ageDistributionChart"></canvas>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-card">
+                <div class="chart-header"><h2 class="chart-title">Gender Distribution</h2><span class="chart-action">View details</span></div>
+                <canvas id="genderChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header"><h2 class="chart-title">Top Interests</h2><span class="chart-action">View all</span></div>
+                <canvas id="interestChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="scripts/dashboard.js"></script>
+</body>
+</html>
