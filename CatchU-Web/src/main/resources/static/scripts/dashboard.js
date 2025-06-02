@@ -56,7 +56,7 @@ async function loadStats() {
                 });
             }
 
-            const login = user.lastLogin ? new Date(user.lastLogin) : null;
+            const login = user.lastLogin ? convertFirestoreTimestamp(user.lastLogin) : null;
             if (login && login.toDateString() === today.toDateString()) {
                 activeToday++;
             }
@@ -83,6 +83,10 @@ async function loadStats() {
     } catch (error) {
         console.error("Error loading data:", error);
     }
+}
+function convertFirestoreTimestamp(ts) {
+    if (!ts || typeof ts.seconds !== 'number') return null;
+    return new Date(ts.seconds * 1000 + Math.floor(ts.nanos / 1e6));
 }
 
 function drawCharts(dailyUsers, ages, genders, interests) {
