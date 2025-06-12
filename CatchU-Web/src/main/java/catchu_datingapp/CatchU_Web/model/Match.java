@@ -1,10 +1,11 @@
 package catchu_datingapp.CatchU_Web.model;
 
 import com.google.cloud.Timestamp;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.List;
 
 @Getter
@@ -13,9 +14,11 @@ import java.util.List;
 @AllArgsConstructor
 public class Match {
     private String id;
-    private List<String> userIds;
-    private Timestamp createdAt;
-    private Timestamp lastMessageTime;
+    private List<String> users;
+    private List<String> userNames;
+    private List<String> userPhotos;
     private String lastMessage;
     private String lastMessageSenderId;
+    private Timestamp lastMessageTimestamp;
+    private Timestamp timestamp;
 }
