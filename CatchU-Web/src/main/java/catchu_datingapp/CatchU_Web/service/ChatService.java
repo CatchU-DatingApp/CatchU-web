@@ -90,7 +90,7 @@ public class ChatService {
         ApiFuture<WriteResult> future = newMessageRef.set(message);
         future.get();
 
-        // Update match document with last message info
+
         updateLastMessage(matchId, message);
 
         return newMessageRef.getId();
@@ -128,7 +128,7 @@ public class ChatService {
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("lastMessage", message.getMessage());
-        updates.put("lastMessageTime", message.getTimestamp());
+        updates.put("lastMessageTimestamp", message.getTimestamp());
         updates.put("lastMessageSenderId", message.getSenderId());
 
         ApiFuture<WriteResult> future = matchRef.update(updates);
