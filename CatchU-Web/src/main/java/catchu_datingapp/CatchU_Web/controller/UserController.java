@@ -1,25 +1,20 @@
 package catchu_datingapp.CatchU_Web.controller;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import catchu_datingapp.CatchU_Web.model.User;
 import catchu_datingapp.CatchU_Web.service.FirestoreService;
 
 @RestController
 @RequestMapping("/users")
-@CrossOrigin(origins = "*") // Boleh disesuaikan untuk keamanan
+@CrossOrigin(origins = "*")
 public class UserController {
 
     @Autowired
@@ -62,6 +57,19 @@ public class UserController {
         }
     }
 
+    @PutMapping("/update-fields/{id}")
+    public ResponseEntity<String> updateUserFields(
+            @PathVariable String id,
+            @RequestBody Map<String, Object> updates) {
+        try {
+            firestoreService.updateUserFields(id, updates);
+            return ResponseEntity.ok("Profile updated successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Gagal update data: " + e.getMessage());
+        }
+    }
+
     // Hapus user
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable String id) {
@@ -72,4 +80,71 @@ public class UserController {
             return ResponseEntity.internalServerError().body("Gagal menghapus user.");
         }
     }
+    @GetMapping("/{id}/photos")
+    public ResponseEntity<List<String>> getUserPhotos(@PathVariable String id) {
+        try {
+            User user = firestoreService.getUserById(id);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            List<String> photos = user.getPhotos() != null ? user.getPhotos() : new ArrayList<>();
+            return ResponseEntity.ok(photos);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+
+    @PostMapping("/{id}/photos/delete")
+    public ResponseEntity<String> deleteUserPhoto(
+            @PathVariable String id,
+            @RequestBody Map<String, Object> body) {
+        try {
+            String photoUrl = (String) body.get("photoUrl");
+            if (photoUrl == null || photoUrl.isEmpty()) {
+                return ResponseEntity.badRequest().body("photoUrl is required");
+            }
+
+            User user = firestoreService.getUserById(id);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            List<String> photos = user.getPhotos() != null ? user.getPhotos() : new ArrayList<>();
+            if (photos.remove(photoUrl)) {
+                Map<String, Object> update = Map.of("photos", photos);
+                firestoreService.updateUserFields(id, update);
+                return ResponseEntity.ok("Photo deleted successfully.");
+            } else {
+                return ResponseEntity.badRequest().body("Photo not found in user's photos.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Gagal menghapus foto: " + e.getMessage());
+        }
+    }
+    @PostMapping("/{id}/photos")
+    public ResponseEntity<String> addPhotoUrl(
+            @PathVariable String id,
+            @RequestBody Map<String, Object> body) {
+        try {
+            String photoUrl = (String) body.get("photoUrl");
+            User user = firestoreService.getUserById(id);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            List<String> photos = user.getPhotos() != null ? user.getPhotos() : new ArrayList<>();
+            if (!photos.contains(photoUrl)) {
+                photos.add(photoUrl);
+            }
+
+            Map<String, Object> update = Map.of("photos", photos);
+            firestoreService.updateUserFields(id, update);
+
+            return ResponseEntity.ok("Photo URL added successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Gagal menambahkan foto: " + e.getMessage());
+        }
+    }
+
 }

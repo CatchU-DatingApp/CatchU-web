@@ -2,6 +2,7 @@ package catchu_datingapp.CatchU_Web.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.stereotype.Service;
@@ -90,5 +91,11 @@ public class FirestoreService {
         ApiFuture<WriteResult> future = db.collection(COLLECTION_NAME).document(id).delete();
         future.get();
         return id;
+    }
+
+    public void updateUserFields(String id, Map<String, Object> updates) throws ExecutionException, InterruptedException {
+        Firestore db = FirestoreClient.getFirestore();
+        DocumentReference docRef = db.collection(COLLECTION_NAME).document(id);
+        docRef.update(updates).get();  // tunggu hingga selesai
     }
 }
