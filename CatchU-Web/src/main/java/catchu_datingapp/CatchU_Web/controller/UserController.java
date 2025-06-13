@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import com.google.cloud.Timestamp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -73,6 +74,10 @@ public class UserController {
     @PostMapping
     public ResponseEntity<String> saveOrUpdateUser(@RequestBody User user) {
         try {
+            // Tambahkan createdAt jika belum ada (misalnya saat pendaftaran baru)
+            if (user.getCreatedAt() == null) {
+                user.setCreatedAt(Timestamp.now()); // Gunakan Timestamp.now() jika pakai Firestore
+            }
             String userId = firestoreService.saveOrUpdateUser(user);
             return ResponseEntity.ok(userId);
         } catch (ExecutionException | InterruptedException e) {

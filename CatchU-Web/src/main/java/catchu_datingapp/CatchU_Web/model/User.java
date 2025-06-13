@@ -37,6 +37,8 @@ public class User {
     private List<String> photos;
     private int umur;
     private boolean verified;
+    private Timestamp createdAt;
+
 
 }
 
