@@ -1,13 +1,10 @@
 package catchu_datingapp.CatchU_Web.model;
 
 import com.google.cloud.Timestamp;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
-
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor

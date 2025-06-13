@@ -56,15 +56,18 @@ async function loadStats() {
                 });
             }
 
+            // Cek login untuk Active Today
             const login = user.lastLogin ? convertFirestoreTimestamp(user.lastLogin) : null;
             if (login && login.toDateString() === today.toDateString()) {
                 activeToday++;
             }
 
-            const creationDate = login || new Date();
-            const dateStr = creationDate.toISOString().split('T')[0];
-            if (dailyUsers.hasOwnProperty(dateStr)) {
-                dailyUsers[dateStr]++;
+            // Cek pertumbuhan user berdasarkan createdAt
+            const creation = user.createdAt ? convertFirestoreTimestamp(user.createdAt) : null;
+            const creationDate = creation || new Date();
+            const creationDateStr = creationDate.toISOString().split('T')[0];
+            if (dailyUsers.hasOwnProperty(creationDateStr)) {
+                dailyUsers[creationDateStr]++;
             }
         });
 
@@ -84,6 +87,7 @@ async function loadStats() {
         console.error("Error loading data:", error);
     }
 }
+
 function convertFirestoreTimestamp(ts) {
     if (!ts || typeof ts.seconds !== 'number') return null;
     return new Date(ts.seconds * 1000 + Math.floor(ts.nanos / 1e6));

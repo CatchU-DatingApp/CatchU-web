@@ -5,13 +5,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import com.google.cloud.firestore.*;
-import org.springframework.stereotype.Service;
-
-import com.google.api.core.ApiFuture;
-import com.google.firebase.cloud.FirestoreClient;
-
+import catchu_datingapp.CatchU_Web.model.Match;
 import catchu_datingapp.CatchU_Web.model.User;
+import com.google.api.core.ApiFuture;
+import com.google.cloud.Timestamp;
+import com.google.cloud.firestore.*;
+import com.google.firebase.cloud.FirestoreClient;
+import org.springframework.stereotype.Service;
 
 @Service
 public class FirestoreService {
@@ -28,10 +28,9 @@ public class FirestoreService {
         List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
         List<User> users = new ArrayList<>();
-
         for (QueryDocumentSnapshot document : documents) {
             User user = document.toObject(User.class);
-            user.setId(document.getId());  // Set ID dokumen
+            user.setId(document.getId());
             users.add(user);
         }
 
@@ -45,8 +44,7 @@ public class FirestoreService {
         Firestore db = FirestoreClient.getFirestore();
 
         DocumentReference docRef = db.collection(COLLECTION_NAME).document(id);
-        ApiFuture<DocumentSnapshot> future = docRef.get();
-        DocumentSnapshot document = future.get();
+        DocumentSnapshot document = docRef.get().get();
 
         if (document.exists()) {
             User user = document.toObject(User.class);
@@ -67,12 +65,10 @@ public class FirestoreService {
         if (id == null || id.isEmpty()) {
             DocumentReference newDoc = db.collection(COLLECTION_NAME).document();
             user.setId(newDoc.getId());
-            ApiFuture<WriteResult> future = newDoc.set(user);
-            future.get(); // tunggu selesai
+            newDoc.set(user).get(); // tunggu selesai
             return user.getId();
         } else {
-            ApiFuture<WriteResult> future = db.collection(COLLECTION_NAME).document(id).set(user);
-            future.get();
+            db.collection(COLLECTION_NAME).document(id).set(user).get();
             return id;
         }
     }
@@ -82,38 +78,123 @@ public class FirestoreService {
      */
     public String deleteUser(String id) throws ExecutionException, InterruptedException {
         Firestore db = FirestoreClient.getFirestore();
-
-        ApiFuture<WriteResult> future = db.collection(COLLECTION_NAME).document(id).delete();
-        future.get();
+        db.collection(COLLECTION_NAME).document(id).delete().get();
         return id;
     }
 
+    /**
+     * Perbarui sebagian field dari user
+     */
     public void updateUserFields(String id, Map<String, Object> updates) throws ExecutionException, InterruptedException {
         Firestore db = FirestoreClient.getFirestore();
-        DocumentReference docRef = db.collection(COLLECTION_NAME).document(id);
-        docRef.update(updates).get();  // tunggu hingga selesai
+        db.collection(COLLECTION_NAME).document(id).update(updates).get();
     }
 
+    /**
+     * Cek apakah nomor telepon sudah terdaftar
+     */
     public boolean checkPhoneNumberExists(String phoneNumber) throws ExecutionException, InterruptedException {
         Firestore db = FirestoreClient.getFirestore();
 
-        // Query langsung mencari user dengan nomor telepon tertentu
         Query query = db.collection(COLLECTION_NAME)
                 .whereEqualTo("nomorTelepon", phoneNumber)
                 .limit(1);
 
-        ApiFuture<QuerySnapshot> querySnapshot = query.get();
-        return !querySnapshot.get().isEmpty();
+        return !query.get().get().isEmpty();
     }
+
+    /**
+     * Cek apakah email sudah terdaftar
+     */
     public boolean checkEmailExists(String email) throws ExecutionException, InterruptedException {
         Firestore db = FirestoreClient.getFirestore();
 
-        // Query ke Firestore untuk mencari email yang cocok
         Query query = db.collection(COLLECTION_NAME)
                 .whereEqualTo("email", email)
                 .limit(1);
 
-        ApiFuture<QuerySnapshot> querySnapshot = query.get();
-        return !querySnapshot.get().isEmpty();
+        return !query.get().get().isEmpty();
+    }
+
+    /**
+     * Cek apakah user sudah pernah menyukai user lain
+     */
+    public boolean checkAlreadyLiked(String likedBy, String likedUser) throws ExecutionException, InterruptedException {
+        Firestore db = FirestoreClient.getFirestore();
+
+        return !db.collection("Likes")
+                .whereEqualTo("likedBy", likedBy)
+                .whereEqualTo("likedUser", likedUser)
+                .get()
+                .get()
+                .isEmpty();
+    }
+
+    /**
+     * Simpan like baru
+     */
+    public void addLike(String likedBy, String likedUser) {
+        Firestore db = FirestoreClient.getFirestore();
+
+        Map<String, Object> data = Map.of(
+                "likedBy", likedBy,
+                "likedUser", likedUser,
+                "timestamp", Timestamp.now()
+        );
+
+        db.collection("Likes").add(data);
+    }
+
+    /**
+     * Cek apakah terjadi mutual like
+     */
+    public boolean checkMutualLike(String likedBy, String likedUser) throws ExecutionException, InterruptedException {
+        Firestore db = FirestoreClient.getFirestore();
+
+        return !db.collection("Likes")
+                .whereEqualTo("likedBy", likedBy)
+                .whereEqualTo("likedUser", likedUser)
+                .get()
+                .get()
+                .isEmpty();
+    }
+
+    /**
+     * Buat match jika belum ada antara dua user
+     */
+    public void createMatchIfNotExists(String user1, String user2) throws ExecutionException, InterruptedException {
+        Firestore db = FirestoreClient.getFirestore();
+
+        // Pastikan tidak duplicate
+        List<String> usersOrdered = user1.compareTo(user2) < 0 ?
+                List.of(user1, user2) : List.of(user2, user1);
+
+        QuerySnapshot existing = db.collection("Matches")
+                .whereEqualTo("users", usersOrdered)
+                .get()
+                .get();
+
+        if (!existing.isEmpty()) return;
+
+        // Ambil user info
+        DocumentSnapshot user1Doc = db.collection(COLLECTION_NAME).document(user1).get().get();
+        DocumentSnapshot user2Doc = db.collection(COLLECTION_NAME).document(user2).get().get();
+
+        String name1 = user1Doc.getString("nama");
+        String name2 = user2Doc.getString("nama");
+
+        List<String> photos1 = (List<String>) user1Doc.get("photos");
+        List<String> photos2 = (List<String>) user2Doc.get("photos");
+
+        Match match = new Match();
+        match.setUsers(usersOrdered);
+        match.setUserNames(user1.compareTo(user2) < 0 ? List.of(name1, name2) : List.of(name2, name1));
+        match.setUserPhotos(List.of(
+                photos1 != null && !photos1.isEmpty() ? photos1.get(0) : "",
+                photos2 != null && !photos2.isEmpty() ? photos2.get(0) : ""
+        ));
+        match.setTimestamp(Timestamp.now());
+
+        db.collection("Matches").add(match);
     }
 }
