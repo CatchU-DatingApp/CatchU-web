@@ -31,6 +31,19 @@ public class UserController {
         }
     }
 
+    @GetMapping("/check-phone")
+    public ResponseEntity<Boolean> checkPhoneNumberExists(@RequestParam String phoneNumber) {
+        try {
+            // Format nomor telepon harus konsisten
+            String formattedPhoneNumber = phoneNumber.startsWith("+") ? phoneNumber : "+" + phoneNumber;
+
+            // Query langsung ke Firestore untuk mengecek keberadaan nomor
+            boolean exists = firestoreService.checkPhoneNumberExists(formattedPhoneNumber);
+            return ResponseEntity.ok(exists);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(false);
+        }
+    }
     // Ambil user berdasarkan ID dokumen
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable String id) {

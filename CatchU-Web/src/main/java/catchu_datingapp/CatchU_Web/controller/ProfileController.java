@@ -65,7 +65,6 @@ public class ProfileController {
     public List<ProfileData> fetchProfiles(@RequestHeader("Firebase-UID") String currentUserId) throws Exception {
         Firestore firestore = FirestoreClient.getFirestore();
 
-        // Ambil data current user dari Firestore
         DocumentReference currentUserDocRef = firestore.collection("Users").document(currentUserId);
         DocumentSnapshot currentUserDoc = currentUserDocRef.get().get();
 

@@ -5,15 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import com.google.cloud.firestore.*;
 import org.springframework.stereotype.Service;
 
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
-import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
 
 import catchu_datingapp.CatchU_Web.model.User;
@@ -97,5 +92,17 @@ public class FirestoreService {
         Firestore db = FirestoreClient.getFirestore();
         DocumentReference docRef = db.collection(COLLECTION_NAME).document(id);
         docRef.update(updates).get();  // tunggu hingga selesai
+    }
+
+    public boolean checkPhoneNumberExists(String phoneNumber) throws ExecutionException, InterruptedException {
+        Firestore db = FirestoreClient.getFirestore();
+
+        // Query langsung mencari user dengan nomor telepon tertentu
+        Query query = db.collection(COLLECTION_NAME)
+                .whereEqualTo("nomorTelepon", phoneNumber)
+                .limit(1);
+
+        ApiFuture<QuerySnapshot> querySnapshot = query.get();
+        return !querySnapshot.get().isEmpty();
     }
 }
