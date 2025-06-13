@@ -105,4 +105,15 @@ public class FirestoreService {
         ApiFuture<QuerySnapshot> querySnapshot = query.get();
         return !querySnapshot.get().isEmpty();
     }
+    public boolean checkEmailExists(String email) throws ExecutionException, InterruptedException {
+        Firestore db = FirestoreClient.getFirestore();
+
+        // Query ke Firestore untuk mencari email yang cocok
+        Query query = db.collection(COLLECTION_NAME)
+                .whereEqualTo("email", email)
+                .limit(1);
+
+        ApiFuture<QuerySnapshot> querySnapshot = query.get();
+        return !querySnapshot.get().isEmpty();
+    }
 }

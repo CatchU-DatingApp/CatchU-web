@@ -58,6 +58,16 @@ public class UserController {
             return ResponseEntity.internalServerError().build();
         }
     }
+    @GetMapping("/check-email")
+    public ResponseEntity<Boolean> checkEmailExists(@RequestParam String email) {
+        try {
+            boolean exists = firestoreService.checkEmailExists(email);
+            return ResponseEntity.ok(exists);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(false);
+        }
+    }
+
 
     // Simpan atau update user (POST)
     @PostMapping
